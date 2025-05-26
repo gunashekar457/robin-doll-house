@@ -8,6 +8,7 @@ public class GhostController : MonoBehaviour
 {
     public Transform player; // Reference to the player's transform
     public NavMeshAgent navMeshAgent;
+    public Animator anim;
     public bool isHaunting = false;
     public GameObject cam1;
     
@@ -21,6 +22,7 @@ public class GhostController : MonoBehaviour
     public void Start()
     {
         navMeshAgent = GetComponent<NavMeshAgent>();
+        anim = anim.GetComponent<Animator>();
         
         cam.SetActive(false);
 
@@ -45,6 +47,7 @@ public class GhostController : MonoBehaviour
         {
             // Set the destination of the ghost to the player's position
             navMeshAgent.SetDestination(player.position);
+            anim.Play("Scary Clown Walk");
         }
     }
 

@@ -6,6 +6,15 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/OutdoorsScene.unity
-    guid: 8124e5870f4fd4c779e7a5f994e84ad1
+    path: Assets/Scenes/SampleScene.unity
+    guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/Scenes/hemanth.unity
+    guid: 9bc481a0cf1ed0747b18a7048ab63c9e
+  - enabled: 1
+    path: Assets/Scenes/gamecompleted.unity
+    guid: d428d0ea5d4a5b34bb5fb32339e8ce85
+  - enabled: 1
+    path: Assets/Scenes/gameover.unity
+    guid: 77424bab5ff2d1d4295aea279e934d38
   m_configObjects: {}

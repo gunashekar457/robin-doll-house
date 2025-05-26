@@ -3,7 +3,12 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - key
+  - cursedoll
+  - TABLE
+  - interactable
+  - door1
   layers:
   - Default
   - TransparentFX

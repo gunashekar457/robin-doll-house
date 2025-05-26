@@ -11,11 +11,12 @@ public class curse : MonoBehaviour
     [SerializeField] GameObject doll4;
     public GameObject ghostprefab;
     public GameObject devil;
+    public GameObject playercam, exorismcam;
     public Transform tr;
     public Light targetLight;
     public float flickerDuration = 0.1f;
     public int flickerCount = 5;
-    public float intervalBetweenIterations = 2f;
+    public float intervalBetweenIterations = 5f;
 
 
 
@@ -54,9 +55,11 @@ public class curse : MonoBehaviour
                 yield return new WaitForSeconds(flickerDuration / 2);
             }
 
-
+            playercam.SetActive(false);
+            exorismcam.SetActive(true);
             yield return new WaitForSeconds(intervalBetweenIterations);
-            SceneManager.LoadScene(3);
+
+            SceneManager.LoadScene("gamecompleted");
            
         }
     }
