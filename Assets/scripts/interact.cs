@@ -17,7 +17,7 @@ public class interact : MonoBehaviour
     void Update()
     {
         ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if(Physics.Raycast(ray,out hit,20f))
+        if(Physics.Raycast(ray,out hit,30f))
         {
             if(hit.collider.gameObject.tag=="interactable"&& hit.collider.gameObject.layer==3&&key==true)
             {

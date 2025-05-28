@@ -6,138 +6,141 @@ using UnityEngine.UI;
 
 public class scenemanager : MonoBehaviour
 {
-    public GameObject cam1, cam2;
-    public GameObject panel1, panel2,panel3;
-    public AudioSource clip,buttonclick;
+    [Header("Cameras")]
+    public GameObject cam1;
+    public GameObject cam2;
+
+    [Header("UI Panels")]
+    public GameObject panel1;  // Main menu panel
+    public GameObject panel2;  // Options panel
+    public GameObject panel3;  // Confirmation/start panel
+
+    [Header("Audio")]
+    public AudioSource clip;        // Background music
+    public AudioSource buttonclick; // Button click sound
+
+    [Header("Settings UI")]
     public Slider volumeSlider;
     public Toggle musicToggle;
-    
-    
-
 
     private float defaultVolume = 0.5f;
     private bool isMusicEnabled = true;
-    public void Start()
+
+    void Start()
     {
-        cam2.SetActive(false);
-        panel2.SetActive(false);
-        panel3.SetActive(false);
-        clip.Play();
+        // Disable cam2 and related panels initially if assigned
+        if (cam2 != null) cam2.SetActive(false);
+        if (panel2 != null) panel2.SetActive(false);
+        if (panel3 != null) panel3.SetActive(false);
+
+        // Play music if AudioSource assigned
+        if (clip != null) clip.Play();
+
         LoadOptions();
+
         Cursor.lockState = CursorLockMode.None;
 
-        // Set UI elements to initial values
-        volumeSlider.value = defaultVolume;
-        musicToggle.isOn = isMusicEnabled;
+        // Setup UI initial values if UI elements assigned
+        if (volumeSlider != null)
+        {
+            volumeSlider.value = defaultVolume;
+            volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
+        }
 
-        // Add event listeners for UI elements
-        volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
-        musicToggle.onValueChanged.AddListener(OnMusicToggleChanged);
+        if (musicToggle != null)
+        {
+            musicToggle.isOn = isMusicEnabled;
+            musicToggle.onValueChanged.AddListener(OnMusicToggleChanged);
+        }
 
-        // Apply the initial volume setting
+        // Apply initial volume setting
         OnVolumeChanged(defaultVolume);
-        
+    }
 
-}
     private void OnVolumeChanged(float volume)
     {
-        // Update the volume based on the slider value
         AudioListener.volume = volume;
     }
 
     private void OnMusicToggleChanged(bool isOn)
     {
-        
         isMusicEnabled = isOn;
-        if (isMusicEnabled)
+        if (clip != null)
         {
-            clip.Play();
-            Debug.Log("Music enabled");
+            if (isMusicEnabled) clip.Play();
+            else clip.Pause();
         }
-        else
-        {
-            clip.Pause();
-            Debug.Log("Music disabled");
-        }
+        Debug.Log(isMusicEnabled ? "Music enabled" : "Music disabled");
     }
 
-    
     private void SaveOptions()
     {
-        PlayerPrefs.SetFloat("Volume", volumeSlider.value);
+        if (volumeSlider != null)
+            PlayerPrefs.SetFloat("Volume", volumeSlider.value);
         PlayerPrefs.SetInt("MusicEnabled", isMusicEnabled ? 1 : 0);
     }
 
-    // Load the options from PlayerPrefs or a file
     private void LoadOptions()
     {
         if (PlayerPrefs.HasKey("Volume"))
-        {
             defaultVolume = PlayerPrefs.GetFloat("Volume");
-        }
 
         if (PlayerPrefs.HasKey("MusicEnabled"))
-        {
             isMusicEnabled = PlayerPrefs.GetInt("MusicEnabled") == 1;
-        }
     }
-    public void quit()
+
+    public void Quit()
     {
         Application.Quit();
     }
-    public void playagain()
+
+    public void PlayAgain()
     {
-        SceneManager.LoadScene("hemanth");
+        SceneManager.LoadScene("hemanth");  // Replace "hemanth" with your game scene name
     }
-    
 
     public void Play()
     {
-       
-        Debug.Log("pressed play");
-        clip.Pause();
-        buttonclick.Play();
-        panel3.SetActive(true);
-        
+        Debug.Log("Play button pressed");
 
-
-
+        if (clip != null) clip.Pause();
+        if (buttonclick != null) buttonclick.Play();
+        if (panel3 != null) panel3.SetActive(true);
     }
-    
-    public void options()
+
+    public void Options()
     {
-        buttonclick.Play();
-        panel1.SetActive(false);
-        cam1.SetActive(false);
-        cam2.SetActive(true);
-        panel2.SetActive(true);
-        
+        if (buttonclick != null) buttonclick.Play();
+        if (panel1 != null) panel1.SetActive(false);
+        if (cam1 != null) cam1.SetActive(false);
+        if (cam2 != null) cam2.SetActive(true);
+        if (panel2 != null) panel2.SetActive(true);
     }
-    
-        
-    
+
     public void ApplyChanges()
     {
         SaveOptions();
-        
         Debug.Log("Options applied");
-        buttonclick.Play();
+        if (buttonclick != null) buttonclick.Play();
     }
 
-    
     public void CloseOptions()
     {
-        cam2.SetActive(false);
-        panel2.SetActive(false);
-        cam1.SetActive(true);
-        panel1.SetActive(true);
-        buttonclick.Play();
-
+        if (cam2 != null) cam2.SetActive(false);
+        if (panel2 != null) panel2.SetActive(false);
+        if (cam1 != null) cam1.SetActive(true);
+        if (panel1 != null) panel1.SetActive(true);
+        if (buttonclick != null) buttonclick.Play();
         Debug.Log("Options window closed");
     }
-    public void proceed()
+
+    public void Proceed()
     {
-        SceneManager.LoadScene(+1);
+        // Example to load next scene by build index
+        int nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
+        if (nextSceneIndex < SceneManager.sceneCountInBuildSettings)
+            SceneManager.LoadScene(nextSceneIndex);
+        else
+            Debug.LogWarning("No next scene in build settings");
     }
-    
 }

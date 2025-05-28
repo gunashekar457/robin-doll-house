@@ -1,161 +1,165 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class carry : MonoBehaviour
 {
     public int maxkeys = 2;
-
-    public GameObject doll1;
-    public GameObject doll2;
-    public GameObject doll3;
-    public GameObject doll4;
     public int maxdoll = 4;
-    public int mindoll = 0;
-    public Text dolltext;
-    public int dollc;
-    public Text interacttext;
-    private GameObject nearbyObject;
-    private bool canInteract = false;
-    public AudioSource scream, equip;
+    public GameObject dollPrefab;
+    public Transform barrelSpawnPoint;
+    public ParticleSystem fireEffectPrefab;
+
+    public Text dolltext, interacttext, keytext;
     public GameObject letterpanel1, letterpanel2;
+    public AudioSource scream, equip;
 
+    public GameObject nearbyObject;
+    private bool canInteract = false;
 
-
-
-
-    public static carry Instance
-    {
-        get { return s_instance; }
-    }
-    public Text keytext;
     public int score = 0;
-    private static carry s_instance;
-    void Start()
-    {
+    public int dollc = 0;
 
-    }
+    public static int firedDollCount = 0; // 🆕 Track fired dolls
+    public curse curseScript; // 🆕 Reference to curse script
+
+    private static carry s_instance;
+    public static carry Instance { get { return s_instance; } }
+
     private void Awake()
     {
         s_instance = this;
     }
 
-
-    // Update is called once per frame
     void Update()
+{
+    // Safety check: if canInteract is true but nearbyObject is null, reset interaction
+    if (canInteract && nearbyObject == null)
     {
-        
-        
-        
-        if (canInteract && Input.GetKeyDown(KeyCode.E))
+        canInteract = false;
+        interacttext.gameObject.SetActive(false);
+        return;
+    }
+
+    if (canInteract && Input.GetKeyDown(KeyCode.E))
+    {
+        if (equip != null) equip.Play();
+
+        if (nearbyObject.CompareTag("key"))
         {
-            equip.Play();
-            // Perform the interaction when the interact key is pressed
-            if (nearbyObject.CompareTag("key"))
-            {
-                score += 1;
-                Destroy(nearbyObject);
-            }
-            else if (nearbyObject.CompareTag("door1") && score >= 1)
-            {
-                score -= 1;
-            }
-            else if (nearbyObject.CompareTag("cursedoll"))
-            {
-                dollc += 1;
-                scream.Play();
-                Destroy(nearbyObject);
-            }
-            else if(nearbyObject.CompareTag("TABLE"))
-            {
-                if (dollc >= 1)
-                {
-                    doll1.SetActive(true);
-
-                }
-                if (dollc >= 2)
-                {
-                    doll2.SetActive(true);
-
-                }
-                if (dollc >= 3)
-                {
-                    doll3.SetActive(true);
-
-                }
-                if (dollc >= 4)
-                {
-                    doll4.SetActive(true);
-
-                }
-            }
-            else if(nearbyObject.CompareTag("letter1"))
-            {
-                letterpanel1.SetActive(true);
-            }
-            else if (nearbyObject.CompareTag("letter2"))
-            {
-                letterpanel2.SetActive(true);
-            }
-
-            // Reset the nearbyObject and disable the interaction until the player moves away
+            score += 1;
+            Destroy(nearbyObject);
             nearbyObject = null;
             canInteract = false;
-            interacttext.gameObject.SetActive(false);
-            
-
-
         }
-        if (score > maxkeys)
+        else if (nearbyObject.CompareTag("door1") && score >= 1)
         {
-            score = maxkeys;
+            score -= 1;
+            // Optionally open door animation here
+            nearbyObject = null;
+            canInteract = false;
         }
-        keytext.text = score.ToString();
-        if(dollc>maxdoll)
+        else if (nearbyObject.CompareTag("cursedoll"))
         {
-            dollc=maxdoll;
+            dollc += 1;
+            if (scream != null)
+            {
+                if (scream.isPlaying) scream.Stop();
+                scream.Play();
+            }
+            Destroy(nearbyObject);
+            nearbyObject = null;
+            canInteract = false;
         }
-        dolltext.text=dollc.ToString();
-
+        else if (nearbyObject.CompareTag("BARREL"))
+        {
+            if (dollc > 0)
+            {
+                FireDollFromBarrel();
+                dollc -= 1;
+            }
+            nearbyObject = null;
+            canInteract = false;
+        }
+        else if (nearbyObject.CompareTag("letter1"))
+        {
+            letterpanel1.SetActive(true);
+            nearbyObject = null;
+            canInteract = false;
+        }
+        else if (nearbyObject.CompareTag("letter2"))
+        {
+            letterpanel2.SetActive(true);
+            nearbyObject = null;
+            canInteract = false;
+        }
     }
+
+    // Clamp values
+    score = Mathf.Min(score, maxkeys);
+    dollc = Mathf.Min(dollc, maxdoll);
+
+    // UI updates
+    keytext.text = score.ToString();
+    dolltext.text = dollc.ToString();
+}
+
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.tag=="key"|| other.gameObject.tag == "door1"|| other.gameObject.tag == "cursedoll"|| other.gameObject.tag == "TABLE"|| other.gameObject.tag == "letter1"|| other.gameObject.tag == "letter2")
-       
+        if (other.CompareTag("key") || other.CompareTag("door1") || other.CompareTag("cursedoll") ||
+            other.CompareTag("BARREL") || other.CompareTag("letter1") || other.CompareTag("letter2"))
         {
             if (!canInteract)
             {
-
                 interacttext.gameObject.SetActive(true);
-                // Store the nearby object and enable interaction
                 nearbyObject = other.gameObject;
                 canInteract = true;
             }
-
         }
-        
-
     }
+
     private void OnTriggerExit(Collider other)
     {
         letterpanel1.SetActive(false);
         letterpanel2.SetActive(false);
-        if (other.gameObject.tag == "key" || other.gameObject.tag == "door1" || other.gameObject.tag == "cursedoll" || other.gameObject.tag == "TABLE" || other.gameObject.tag == "letter1" || other.gameObject.tag == "letter2")
-        {
-            // Reset the nearbyObject and disable interaction when the player moves away
-            if (other.gameObject == nearbyObject)
-            {
-                interacttext.gameObject.SetActive(false);
-                nearbyObject = null;
-                canInteract = false;
-                
-            }
-           
 
+        if (other.gameObject == nearbyObject)
+        {
+            interacttext.gameObject.SetActive(false);
+            nearbyObject = null;
+            canInteract = false;
         }
-            
     }
 
+    private void FireDollFromBarrel()
+    {
+        GameObject newDoll = Instantiate(dollPrefab, barrelSpawnPoint.position, barrelSpawnPoint.rotation);
+
+        // Fire effect
+        if (fireEffectPrefab != null)
+        {
+            ParticleSystem fire = Instantiate(fireEffectPrefab, newDoll.transform.position, Quaternion.identity, newDoll.transform);
+            fire.Play();
+        }
+
+        // Launch
+        Rigidbody rb = newDoll.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.AddForce(barrelSpawnPoint.forward * 500f + Vector3.up * 200f);
+        }
+
+        Destroy(newDoll, 3f); // Destroy after 3s
+
+        // Count fired dolls
+        firedDollCount++;
+
+        // Start exorcism if 4 dolls fired
+        if (firedDollCount == 4 && curseScript != null)
+        {
+            curseScript.StartExorcism(); // 👈 Call custom method
+        }
+    }
 }

@@ -1,14 +1,10 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class curse : MonoBehaviour
 {
-    [SerializeField] GameObject doll1;
-    [SerializeField] GameObject doll2;
-    [SerializeField] GameObject doll3;
-    [SerializeField] GameObject doll4;
+   // [SerializeField] private GameObject doll1, doll2, doll3, doll4; // Not used anymore but can be kept for visuals if needed
     public GameObject ghostprefab;
     public GameObject devil;
     public GameObject playercam, exorismcam;
@@ -16,51 +12,75 @@ public class curse : MonoBehaviour
     public Light targetLight;
     public float flickerDuration = 0.1f;
     public int flickerCount = 5;
-    public float intervalBetweenIterations = 5f;
+    public string nextSceneName = "gamecompleted";
+    public AudioSource exorcismAudio;
+    public GameObject fireEffectPrefab;
 
-
+    private bool triggered = false;
+    private GameObject spawnedDevil;
 
     void Start()
     {
-        
+        exorismcam.SetActive(false);
+        playercam.SetActive(true);
     }
 
-    // Update is called once per frame
-    void Update()
+    // 🔥 Trigger this from carry script when 4 dolls are fired
+    public void StartExorcism()
     {
-        if(doll1&&doll2&&doll3&&doll4.activeInHierarchy)
-        {
-            transform.position+= new Vector3(0f,0.2f,0f)*Time.deltaTime;
-            Instantiate(devil,tr.position,Quaternion.identity);
-            StartCoroutine(FlickerLight1());
+        if (triggered) return;
+
+        triggered = true;
+
+        // Spawn devil with offset
+        Vector3 offset = new Vector3(1.5f, -1f, 0.1f);
+        Vector3 spawnPos = tr.position + offset;
+
+        spawnedDevil = Instantiate(devil, spawnPos, Quaternion.identity);
+
+        // Face exorcism camera
+        Vector3 lookDirection = exorismcam.transform.position - spawnedDevil.transform.position;
+        lookDirection.y = 0f;
+        spawnedDevil.transform.rotation = Quaternion.LookRotation(lookDirection);
+
+        // Disable ghost and start exorcism
+        if (ghostprefab != null)
             ghostprefab.SetActive(false);
 
-        }
-
-
-
-
-
-
+        StartCoroutine(FlickerLightAndExorcise());
     }
-    private IEnumerator FlickerLight1()
+
+    private IEnumerator FlickerLightAndExorcise()
     {
-        while (true)
+        for (int i = 0; i < flickerCount; i++)
         {
-
-            {
-                targetLight.enabled = true;
-                yield return new WaitForSeconds(flickerDuration / 2);
-                targetLight.enabled = false;
-                yield return new WaitForSeconds(flickerDuration / 2);
-            }
-
-            playercam.SetActive(false);
-            exorismcam.SetActive(true);
-            yield return new WaitForSeconds(intervalBetweenIterations);
-
-            SceneManager.LoadScene("gamecompleted");
-           
+            targetLight.enabled = true;
+            yield return new WaitForSeconds(flickerDuration / 2);
+            targetLight.enabled = false;
+            yield return new WaitForSeconds(flickerDuration / 2);
         }
+
+        // Switch to exorcism camera and play audio
+        playercam.SetActive(false);
+        exorismcam.SetActive(true);
+        exorcismAudio.Play();
+
+        yield return new WaitForSeconds(2f);
+
+        // Fire effect on devil
+        if (spawnedDevil != null)
+        {
+            Vector3 firePosition = spawnedDevil.transform.position;
+            GameObject fire = Instantiate(fireEffectPrefab, firePosition, Quaternion.identity);
+            fire.transform.SetParent(spawnedDevil.transform);
+        }
+
+        // Wait for audio + buffer
+        float remainingTime = exorcismAudio.clip.length - 2f;
+        if (remainingTime > 0)
+            yield return new WaitForSeconds(remainingTime + 1f);
+
+        // Load next scene
+        SceneManager.LoadScene(nextSceneName);
     }
 }

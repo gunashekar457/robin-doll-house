@@ -6,9 +6,11 @@ TagManager:
   tags:
   - key
   - cursedoll
-  - TABLE
   - interactable
   - door1
+  - letter1
+  - letter2
+  - BARREL
   layers:
   - Default
   - TransparentFX

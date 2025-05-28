@@ -85,7 +85,7 @@ public class GhostController : MonoBehaviour
     {
         
         yield return new WaitForSeconds(panelDisplayDelay);
-        SceneManager.LoadScene(2);
+        SceneManager.LoadScene("gameover");
 
     }
     }
